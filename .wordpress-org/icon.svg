@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <title>Settings Transfer for WooCommerce icon - A-in plugin family</title>
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#171C30"/>
+      <stop offset="1" stop-color="#0E1220"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.6">
+      <stop offset="0" stop-color="#A3E635" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#A3E635" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <g id="background">
+    <rect width="256" height="256" rx="56" fill="url(#tile)"/>
+    <rect width="256" height="256" rx="56" fill="url(#glow)"/>
+    <rect x="1.5" y="1.5" width="253" height="253" rx="54.5" fill="none" stroke="#A3E635" stroke-opacity="0.28" stroke-width="3"/>
+  </g>
+  <g id="pictogram">
+      <g id="arrow-out"><path d="M52 98 H196 M164 66 L198 98 L164 130" fill="none" stroke="#A3E635" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/></g>
+      <g id="arrow-in"><path d="M204 160 H60 M92 128 L58 160 L92 192" fill="none" stroke="#F4F6FB" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/></g>
+  </g>
+</svg>

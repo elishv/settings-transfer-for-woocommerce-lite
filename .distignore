@@ -1,0 +1,12 @@
+# Left out of the WordPress.org plugin zip. .wordpress-org/ goes to the SVN /assets folder instead.
+.git
+.github
+.gitignore
+.gitattributes
+.distignore
+.wordpress-org
+.DS_Store
+README.md
+node_modules
+build
+*.zip
