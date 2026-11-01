@@ -1,5 +1,5 @@
 === Settings Transfer for WooCommerce ===
-Contributors: elishvarzman
+Contributors: elis85
 Donate link: https://a-in.co.il/plugins/settings-transfer/
 Tags: woocommerce, settings, export, import, migration
 Requires at least: 6.0
