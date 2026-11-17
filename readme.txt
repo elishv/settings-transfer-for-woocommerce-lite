@@ -5,7 +5,7 @@ Tags: woocommerce, settings, export, import, migration
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.0
+Stable tag: 1.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,6 +22,8 @@ Moving a store from staging to production, or setting up a new shop like an exis
 * **Not included**: general options stored separately, such as the store address, and shipping zones (see the FAQ).
 
 The screen is at **WooCommerce → Settings Transfer**.
+
+This is an independent plugin by A-in (a-in.co.il). It is not affiliated with or endorsed by WooCommerce or Automattic.
 
 **Note:** the export can contain payment gateway keys and other secrets. Keep the file somewhere safe and delete it when you are done.
 
@@ -61,6 +63,9 @@ Users with the `manage_options` capability (administrators).
 
 == Changelog ==
 
+= 1.4.0 =
+* Code: every class, hook, form field, nonce, transient and admin page slug uses the unique `ainst` / `AINST_` prefix. The option filter is now `ainst_is_allowed_option` (was `wc_settings_transfer_is_allowed_option`).
+
 = 1.3.0 =
 * Security: import now writes only WooCommerce settings options (allowlist), and every other key is skipped and reported.
 * Security: export and import need the `manage_options` capability (administrators).
@@ -72,6 +77,9 @@ Users with the `manage_options` capability (administrators).
 * Export/import with a report.
 
 == Upgrade Notice ==
+
+= 1.4.0 =
+Internal prefix change. If you used the `wc_settings_transfer_is_allowed_option` filter, rename it to `ainst_is_allowed_option`.
 
 = 1.3.0 =
 Security fix: the import is limited to WooCommerce settings and to administrators. Please update.

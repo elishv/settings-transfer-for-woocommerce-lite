@@ -3,7 +3,7 @@
  * Plugin Name:       Settings Transfer for WooCommerce
  * Plugin URI:        https://a-in.co.il/plugins/settings-transfer/
  * Description:       Export and import WooCommerce settings (woocommerce_settings and woocommerce_*_settings) as JSON, with a short report.
- * Version:           1.3.0
+ * Version:           1.4.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Requires Plugins:  woocommerce
@@ -14,7 +14,7 @@
  * Text Domain:       settings-transfer-for-woocommerce
  * Domain Path:       /languages
  *
- * @package WC_Settings_Transfer
+ * @package AINST_Settings_Transfer
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -38,10 +38,10 @@ add_action( 'before_woocommerce_init', function() {
  *   run through wp_kses_post().
  * - Every action is protected by a nonce and by a capability check.
  */
-class WC_Settings_Transfer {
+class AINST_Settings_Transfer {
 
 	const CAPABILITY    = 'manage_options';
-	const PAGE_SLUG     = 'wc-settings-transfer';
+	const PAGE_SLUG     = 'ainst-settings-transfer';
 	const MAX_FILE_SIZE = 2097152; // 2 MB.
 
 	/**
@@ -68,7 +68,7 @@ class WC_Settings_Transfer {
 		 * @param bool   $allowed Allowed by the built-in allowlist.
 		 * @param string $name    Option name.
 		 */
-		return (bool) apply_filters( 'wc_settings_transfer_is_allowed_option', $allowed, $name );
+		return (bool) apply_filters( 'ainst_is_allowed_option', $allowed, $name );
 	}
 
 	/**
@@ -89,19 +89,19 @@ class WC_Settings_Transfer {
 	 * Handle the export / import form posts.
 	 */
 	public function maybe_handle_action() {
-		if ( empty( $_POST['wcst_action'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Only checks which form was sent; each branch verifies its own nonce below.
+		if ( empty( $_POST['ainst_action'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Only checks which form was sent; each branch verifies its own nonce below.
 			return;
 		}
 		if ( ! current_user_can( self::CAPABILITY ) ) {
 			wp_die( esc_html__( 'Insufficient permissions', 'settings-transfer-for-woocommerce' ), '', array( 'response' => 403 ) );
 		}
-		$action = sanitize_key( wp_unslash( $_POST['wcst_action'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified per action below.
+		$action = sanitize_key( wp_unslash( $_POST['ainst_action'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified per action below.
 
 		if ( 'export' === $action ) {
-			check_admin_referer( 'wcst_export', 'wcst_export_nonce' );
+			check_admin_referer( 'ainst_export', 'ainst_export_nonce' );
 			$this->export_settings();
 		} elseif ( 'import' === $action ) {
-			check_admin_referer( 'wcst_import', 'wcst_import_nonce' );
+			check_admin_referer( 'ainst_import', 'ainst_import_nonce' );
 			$this->import_settings();
 		}
 	}
@@ -135,8 +135,8 @@ class WC_Settings_Transfer {
 			<h2><?php esc_html_e( 'Export Settings', 'settings-transfer-for-woocommerce' ); ?></h2>
 			<p><?php esc_html_e( 'The file can contain payment gateway keys and other secrets. Store it safely.', 'settings-transfer-for-woocommerce' ); ?></p>
 			<form method="post">
-				<?php wp_nonce_field( 'wcst_export', 'wcst_export_nonce' ); ?>
-				<input type="hidden" name="wcst_action" value="export">
+				<?php wp_nonce_field( 'ainst_export', 'ainst_export_nonce' ); ?>
+				<input type="hidden" name="ainst_action" value="export">
 				<button type="submit" class="button button-primary">
 					<?php esc_html_e( 'Download JSON Export', 'settings-transfer-for-woocommerce' ); ?>
 				</button>
@@ -145,9 +145,9 @@ class WC_Settings_Transfer {
 			<h2><?php esc_html_e( 'Import Settings', 'settings-transfer-for-woocommerce' ); ?></h2>
 			<p><?php esc_html_e( 'Only WooCommerce settings (woocommerce_settings and woocommerce_*_settings) are imported. Any other entry in the file is skipped.', 'settings-transfer-for-woocommerce' ); ?></p>
 			<form method="post" enctype="multipart/form-data">
-				<?php wp_nonce_field( 'wcst_import', 'wcst_import_nonce' ); ?>
-				<input type="hidden" name="wcst_action" value="import">
-				<input type="file" name="wcst_import_file" accept=".json,application/json" required>
+				<?php wp_nonce_field( 'ainst_import', 'ainst_import_nonce' ); ?>
+				<input type="hidden" name="ainst_action" value="import">
+				<input type="file" name="ainst_import_file" accept=".json,application/json" required>
 				<p>
 					<button type="submit" class="button button-secondary">
 						<?php esc_html_e( 'Upload & Import JSON', 'settings-transfer-for-woocommerce' ); ?>
@@ -198,14 +198,14 @@ class WC_Settings_Transfer {
 	private function import_settings() {
 		// Nonce and capability were checked in maybe_handle_action().
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		if ( empty( $_FILES['wcst_import_file'] ) || ! is_array( $_FILES['wcst_import_file'] ) ) {
+		if ( empty( $_FILES['ainst_import_file'] ) || ! is_array( $_FILES['ainst_import_file'] ) ) {
 			$this->redirect_with_notice( __( 'File upload error.', 'settings-transfer-for-woocommerce' ), 'error' );
 		}
 		$file = array(
-			'name'     => isset( $_FILES['wcst_import_file']['name'] ) ? sanitize_file_name( wp_unslash( $_FILES['wcst_import_file']['name'] ) ) : '',
-			'tmp_name' => isset( $_FILES['wcst_import_file']['tmp_name'] ) ? sanitize_text_field( $_FILES['wcst_import_file']['tmp_name'] ) : '', // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Server-generated temp path.
-			'size'     => isset( $_FILES['wcst_import_file']['size'] ) ? absint( $_FILES['wcst_import_file']['size'] ) : 0,
-			'error'    => isset( $_FILES['wcst_import_file']['error'] ) ? absint( $_FILES['wcst_import_file']['error'] ) : UPLOAD_ERR_NO_FILE,
+			'name'     => isset( $_FILES['ainst_import_file']['name'] ) ? sanitize_file_name( wp_unslash( $_FILES['ainst_import_file']['name'] ) ) : '',
+			'tmp_name' => isset( $_FILES['ainst_import_file']['tmp_name'] ) ? sanitize_text_field( $_FILES['ainst_import_file']['tmp_name'] ) : '', // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Server-generated temp path.
+			'size'     => isset( $_FILES['ainst_import_file']['size'] ) ? absint( $_FILES['ainst_import_file']['size'] ) : 0,
+			'error'    => isset( $_FILES['ainst_import_file']['error'] ) ? absint( $_FILES['ainst_import_file']['error'] ) : UPLOAD_ERR_NO_FILE,
 		);
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
@@ -297,7 +297,7 @@ class WC_Settings_Transfer {
 	 * @return string
 	 */
 	private function notice_key() {
-		return 'wcst_notice_' . get_current_user_id();
+		return 'ainst_notice_' . get_current_user_id();
 	}
 
 	/**
@@ -322,4 +322,4 @@ class WC_Settings_Transfer {
 	}
 }
 
-new WC_Settings_Transfer();
+new AINST_Settings_Transfer();
