@@ -1,4 +1,4 @@
-=== Settings Transfer for WooCommerce ===
+=== All-IN Settings Transfer for WooCommerce ===
 Contributors: elis85
 Donate link: https://a-in.co.il/plugins/settings-transfer/
 Tags: woocommerce, settings, export, import, migration
@@ -64,6 +64,7 @@ Users with the `manage_options` capability (administrators).
 == Changelog ==
 
 = 1.4.0 =
+* Renamed to All-IN Settings Transfer for WooCommerce (slug and text domain `all-in-settings-transfer-for-woocommerce`).
 * Code: every class, hook, form field, nonce, transient and admin page slug uses the unique `ainst` / `AINST_` prefix. The option filter is now `ainst_is_allowed_option` (was `wc_settings_transfer_is_allowed_option`).
 
 = 1.3.0 =
