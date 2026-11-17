@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name:       Settings Transfer for WooCommerce
+ * Plugin Name:       All-IN Settings Transfer for WooCommerce
  * Plugin URI:        https://a-in.co.il/plugins/settings-transfer/
  * Description:       Export and import WooCommerce settings (woocommerce_settings and woocommerce_*_settings) as JSON, with a short report.
- * Version:           1.3.0
+ * Version:           1.4.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Requires Plugins:  woocommerce
@@ -11,10 +11,10 @@
  * Author URI:        https://a-in.co.il/
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       settings-transfer-for-woocommerce
+ * Text Domain:       all-in-settings-transfer-for-woocommerce
  * Domain Path:       /languages
  *
- * @package WC_Settings_Transfer
+ * @package AINST_Settings_Transfer
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -38,10 +38,10 @@ add_action( 'before_woocommerce_init', function() {
  *   run through wp_kses_post().
  * - Every action is protected by a nonce and by a capability check.
  */
-class WC_Settings_Transfer {
+class AINST_Settings_Transfer {
 
 	const CAPABILITY    = 'manage_options';
-	const PAGE_SLUG     = 'wc-settings-transfer';
+	const PAGE_SLUG     = 'ainst-settings-transfer';
 	const MAX_FILE_SIZE = 2097152; // 2 MB.
 
 	/**
@@ -68,7 +68,7 @@ class WC_Settings_Transfer {
 		 * @param bool   $allowed Allowed by the built-in allowlist.
 		 * @param string $name    Option name.
 		 */
-		return (bool) apply_filters( 'wc_settings_transfer_is_allowed_option', $allowed, $name );
+		return (bool) apply_filters( 'ainst_is_allowed_option', $allowed, $name );
 	}
 
 	/**
@@ -77,8 +77,8 @@ class WC_Settings_Transfer {
 	public function add_admin_page() {
 		add_submenu_page(
 			'woocommerce',
-			__( 'Settings Transfer', 'settings-transfer-for-woocommerce' ),
-			__( 'Settings Transfer', 'settings-transfer-for-woocommerce' ),
+			__( 'Settings Transfer', 'all-in-settings-transfer-for-woocommerce' ),
+			__( 'Settings Transfer', 'all-in-settings-transfer-for-woocommerce' ),
 			self::CAPABILITY,
 			self::PAGE_SLUG,
 			array( $this, 'admin_page_html' )
@@ -89,19 +89,19 @@ class WC_Settings_Transfer {
 	 * Handle the export / import form posts.
 	 */
 	public function maybe_handle_action() {
-		if ( empty( $_POST['wcst_action'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Only checks which form was sent; each branch verifies its own nonce below.
+		if ( empty( $_POST['ainst_action'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Only checks which form was sent; each branch verifies its own nonce below.
 			return;
 		}
 		if ( ! current_user_can( self::CAPABILITY ) ) {
-			wp_die( esc_html__( 'Insufficient permissions', 'settings-transfer-for-woocommerce' ), '', array( 'response' => 403 ) );
+			wp_die( esc_html__( 'Insufficient permissions', 'all-in-settings-transfer-for-woocommerce' ), '', array( 'response' => 403 ) );
 		}
-		$action = sanitize_key( wp_unslash( $_POST['wcst_action'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified per action below.
+		$action = sanitize_key( wp_unslash( $_POST['ainst_action'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified per action below.
 
 		if ( 'export' === $action ) {
-			check_admin_referer( 'wcst_export', 'wcst_export_nonce' );
+			check_admin_referer( 'ainst_export', 'ainst_export_nonce' );
 			$this->export_settings();
 		} elseif ( 'import' === $action ) {
-			check_admin_referer( 'wcst_import', 'wcst_import_nonce' );
+			check_admin_referer( 'ainst_import', 'ainst_import_nonce' );
 			$this->import_settings();
 		}
 	}
@@ -119,38 +119,38 @@ class WC_Settings_Transfer {
 		}
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Settings Transfer for WooCommerce', 'settings-transfer-for-woocommerce' ); ?></h1>
+			<h1><?php esc_html_e( 'All-IN Settings Transfer for WooCommerce', 'all-in-settings-transfer-for-woocommerce' ); ?></h1>
 			<?php if ( is_array( $notice ) && ! empty( $notice['message'] ) ) : ?>
 				<div class="notice notice-<?php echo esc_attr( 'error' === $notice['type'] ? 'error' : 'success' ); ?> is-dismissible">
 					<p><?php echo esc_html( $notice['message'] ); ?></p>
 					<?php if ( ! empty( $notice['skipped'] ) ) : ?>
 						<p>
-							<?php esc_html_e( 'Skipped (not WooCommerce settings):', 'settings-transfer-for-woocommerce' ); ?>
+							<?php esc_html_e( 'Skipped (not WooCommerce settings):', 'all-in-settings-transfer-for-woocommerce' ); ?>
 							<code><?php echo esc_html( implode( ', ', array_slice( $notice['skipped'], 0, 50 ) ) ); ?></code>
 						</p>
 					<?php endif; ?>
 				</div>
 			<?php endif; ?>
 
-			<h2><?php esc_html_e( 'Export Settings', 'settings-transfer-for-woocommerce' ); ?></h2>
-			<p><?php esc_html_e( 'The file can contain payment gateway keys and other secrets. Store it safely.', 'settings-transfer-for-woocommerce' ); ?></p>
+			<h2><?php esc_html_e( 'Export Settings', 'all-in-settings-transfer-for-woocommerce' ); ?></h2>
+			<p><?php esc_html_e( 'The file can contain payment gateway keys and other secrets. Store it safely.', 'all-in-settings-transfer-for-woocommerce' ); ?></p>
 			<form method="post">
-				<?php wp_nonce_field( 'wcst_export', 'wcst_export_nonce' ); ?>
-				<input type="hidden" name="wcst_action" value="export">
+				<?php wp_nonce_field( 'ainst_export', 'ainst_export_nonce' ); ?>
+				<input type="hidden" name="ainst_action" value="export">
 				<button type="submit" class="button button-primary">
-					<?php esc_html_e( 'Download JSON Export', 'settings-transfer-for-woocommerce' ); ?>
+					<?php esc_html_e( 'Download JSON Export', 'all-in-settings-transfer-for-woocommerce' ); ?>
 				</button>
 			</form>
 
-			<h2><?php esc_html_e( 'Import Settings', 'settings-transfer-for-woocommerce' ); ?></h2>
-			<p><?php esc_html_e( 'Only WooCommerce settings (woocommerce_settings and woocommerce_*_settings) are imported. Any other entry in the file is skipped.', 'settings-transfer-for-woocommerce' ); ?></p>
+			<h2><?php esc_html_e( 'Import Settings', 'all-in-settings-transfer-for-woocommerce' ); ?></h2>
+			<p><?php esc_html_e( 'Only WooCommerce settings (woocommerce_settings and woocommerce_*_settings) are imported. Any other entry in the file is skipped.', 'all-in-settings-transfer-for-woocommerce' ); ?></p>
 			<form method="post" enctype="multipart/form-data">
-				<?php wp_nonce_field( 'wcst_import', 'wcst_import_nonce' ); ?>
-				<input type="hidden" name="wcst_action" value="import">
-				<input type="file" name="wcst_import_file" accept=".json,application/json" required>
+				<?php wp_nonce_field( 'ainst_import', 'ainst_import_nonce' ); ?>
+				<input type="hidden" name="ainst_action" value="import">
+				<input type="file" name="ainst_import_file" accept=".json,application/json" required>
 				<p>
 					<button type="submit" class="button button-secondary">
-						<?php esc_html_e( 'Upload & Import JSON', 'settings-transfer-for-woocommerce' ); ?>
+						<?php esc_html_e( 'Upload & Import JSON', 'all-in-settings-transfer-for-woocommerce' ); ?>
 					</button>
 				</p>
 			</form>
@@ -182,7 +182,7 @@ class WC_Settings_Transfer {
 
 		$json = wp_json_encode( $data, JSON_PRETTY_PRINT );
 		if ( ! $json ) {
-			wp_die( esc_html__( 'Failed to encode settings to JSON.', 'settings-transfer-for-woocommerce' ) );
+			wp_die( esc_html__( 'Failed to encode settings to JSON.', 'all-in-settings-transfer-for-woocommerce' ) );
 		}
 
 		nocache_headers();
@@ -198,31 +198,31 @@ class WC_Settings_Transfer {
 	private function import_settings() {
 		// Nonce and capability were checked in maybe_handle_action().
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		if ( empty( $_FILES['wcst_import_file'] ) || ! is_array( $_FILES['wcst_import_file'] ) ) {
-			$this->redirect_with_notice( __( 'File upload error.', 'settings-transfer-for-woocommerce' ), 'error' );
+		if ( empty( $_FILES['ainst_import_file'] ) || ! is_array( $_FILES['ainst_import_file'] ) ) {
+			$this->redirect_with_notice( __( 'File upload error.', 'all-in-settings-transfer-for-woocommerce' ), 'error' );
 		}
 		$file = array(
-			'name'     => isset( $_FILES['wcst_import_file']['name'] ) ? sanitize_file_name( wp_unslash( $_FILES['wcst_import_file']['name'] ) ) : '',
-			'tmp_name' => isset( $_FILES['wcst_import_file']['tmp_name'] ) ? sanitize_text_field( $_FILES['wcst_import_file']['tmp_name'] ) : '', // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Server-generated temp path.
-			'size'     => isset( $_FILES['wcst_import_file']['size'] ) ? absint( $_FILES['wcst_import_file']['size'] ) : 0,
-			'error'    => isset( $_FILES['wcst_import_file']['error'] ) ? absint( $_FILES['wcst_import_file']['error'] ) : UPLOAD_ERR_NO_FILE,
+			'name'     => isset( $_FILES['ainst_import_file']['name'] ) ? sanitize_file_name( wp_unslash( $_FILES['ainst_import_file']['name'] ) ) : '',
+			'tmp_name' => isset( $_FILES['ainst_import_file']['tmp_name'] ) ? sanitize_text_field( $_FILES['ainst_import_file']['tmp_name'] ) : '', // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Server-generated temp path.
+			'size'     => isset( $_FILES['ainst_import_file']['size'] ) ? absint( $_FILES['ainst_import_file']['size'] ) : 0,
+			'error'    => isset( $_FILES['ainst_import_file']['error'] ) ? absint( $_FILES['ainst_import_file']['error'] ) : UPLOAD_ERR_NO_FILE,
 		);
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		if ( UPLOAD_ERR_OK !== $file['error'] || '' === $file['tmp_name'] || ! is_uploaded_file( $file['tmp_name'] ) ) {
-			$this->redirect_with_notice( __( 'File upload error.', 'settings-transfer-for-woocommerce' ), 'error' );
+			$this->redirect_with_notice( __( 'File upload error.', 'all-in-settings-transfer-for-woocommerce' ), 'error' );
 		}
 		if ( 'json' !== strtolower( pathinfo( $file['name'], PATHINFO_EXTENSION ) ) ) {
-			$this->redirect_with_notice( __( 'Please upload a .json file.', 'settings-transfer-for-woocommerce' ), 'error' );
+			$this->redirect_with_notice( __( 'Please upload a .json file.', 'all-in-settings-transfer-for-woocommerce' ), 'error' );
 		}
 		if ( $file['size'] <= 0 || $file['size'] > self::MAX_FILE_SIZE ) {
-			$this->redirect_with_notice( __( 'The file is empty or larger than 2 MB.', 'settings-transfer-for-woocommerce' ), 'error' );
+			$this->redirect_with_notice( __( 'The file is empty or larger than 2 MB.', 'all-in-settings-transfer-for-woocommerce' ), 'error' );
 		}
 
 		$json = file_get_contents( $file['tmp_name'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reading a local uploaded temp file.
 		$data = json_decode( (string) $json, true );
 		if ( ! is_array( $data ) ) {
-			$this->redirect_with_notice( __( 'Invalid JSON file.', 'settings-transfer-for-woocommerce' ), 'error' );
+			$this->redirect_with_notice( __( 'Invalid JSON file.', 'all-in-settings-transfer-for-woocommerce' ), 'error' );
 		}
 
 		$added   = 0;
@@ -246,7 +246,7 @@ class WC_Settings_Transfer {
 
 		$msg = sprintf(
 			/* translators: 1: added count, 2: updated count, 3: skipped count */
-			__( 'Import complete: %1$d added, %2$d updated, %3$d skipped.', 'settings-transfer-for-woocommerce' ),
+			__( 'Import complete: %1$d added, %2$d updated, %3$d skipped.', 'all-in-settings-transfer-for-woocommerce' ),
 			$added,
 			$updated,
 			count( $skipped )
@@ -297,7 +297,7 @@ class WC_Settings_Transfer {
 	 * @return string
 	 */
 	private function notice_key() {
-		return 'wcst_notice_' . get_current_user_id();
+		return 'ainst_notice_' . get_current_user_id();
 	}
 
 	/**
@@ -322,4 +322,4 @@ class WC_Settings_Transfer {
 	}
 }
 
-new WC_Settings_Transfer();
+new AINST_Settings_Transfer();
